@@ -47,6 +47,13 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// </summary>
         private KinectSensor sensor;
 
+        //The ID of the human that we want to play the game
+        private int humanNumber = -1;
+
+        private const int PADDLEHEIGHT = 15;
+
+        private const int PADDLEWIDTH = 150;
+
         private InteractionStream interactionStream;
 
         /// <summary>
@@ -271,17 +278,28 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                     foreach (UserInfo u in interactionData) {
                         if (u.SkeletonTrackingId != 0)
                         {
+                            if(humanNumber == -1)
+                            {
+                                humanNumber = u.SkeletonTrackingId;
+                            }
+                            if(humanNumber != u.SkeletonTrackingId)
+                            {
+                                continue;
+                            }
                             foreach (InteractionHandPointer pointer in u.HandPointers)
                             {
+                                if(!pointer.IsPrimaryForUser)
+                                {
+                                    continue;
+                                }
+
                                 double x = pointer.X;
                                 if (x < 0) x = 0;
                                 if (x > 1) x = 1;
-                                double y = pointer.Y;
-                                if (y < 0) y = 0;
-                                if (y > 1) y = 1;
-                                double rw = 100;
-                                double rh = 100;
-                                dc.DrawRectangle(basicColorBrush, inferredBonePen, new Rect((width - rw) * x, (height - rh) * y, rw, rh));
+                                x = x * (width - PADDLEWIDTH);
+                                double y = height - PADDLEHEIGHT;
+                                //dc.DrawRectangle(basicColorBrush, inferredBonePen, new Rect((width - rw) * x, (height - rh) * y, rw, rh));
+                                dc.DrawRectangle(basicColorBrush, inferredBonePen, new Rect(x, y, PADDLEWIDTH, PADDLEHEIGHT));
                             }
                         }
                     }
