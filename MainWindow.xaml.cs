@@ -11,6 +11,9 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
     using System.Windows.Media;
     using System.Windows.Media.Imaging;
     using Microsoft.Kinect;
+    using Microsoft.Kinect.Toolkit;
+    using Microsoft.Kinect.Toolkit.Interaction;
+    using System;
 
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -27,20 +30,24 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// </summary>
         private byte[] pixelBytes;
 
+        
+
         /// <summary>
         /// A brush that can be used to draw things on screen in the specified color
         /// </summary>
-        private readonly Brush basicColorBrush = new SolidColorBrush(Color.FromArgb(255, 68, 192, 68));
+        private readonly Brush basicColorBrush = new SolidColorBrush(Color.FromRgb(255, 0, 0));
 
         /// <summary>
         /// A pen that can be used to draw things on screen using the specified brush and width
         /// </summary>        
-        private readonly Pen inferredBonePen = new Pen(Brushes.Gray, 1);
+        private readonly Pen inferredBonePen = new Pen(Brushes.Red, 1);
 
         /// <summary>
         /// Active Kinect sensor
         /// </summary>
         private KinectSensor sensor;
+
+        private InteractionStream interactionStream;
 
         /// <summary>
         /// Drawing group for skeleton rendering output
@@ -97,6 +104,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 this.sensor.SkeletonStream.Enable();
                 this.sensor.ColorStream.Enable();
                 this.sensor.DepthStream.Enable();
+                this.interactionStream = new InteractionStream(this.sensor, new ArkinectInteractionClient());
 
                 // Add an event handlers to be called whenever there is new color frame data
                 // Disable event handler registrations for events you are not using
@@ -104,11 +112,12 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 this.sensor.AllFramesReady += this.SensorAllFramesReady;
                 this.sensor.ColorFrameReady += this.SensorColorFrameReady;
                 this.sensor.DepthFrameReady += this.SensorDepthFrameReady;
+                this.interactionStream.InteractionFrameReady += this.SensorInteractionFrameReady;
 
                 // Prepare the image byte buffer and the bitmap pixel buffer, then bind the bitmap to the WPF Image canvas
                 this.pixelBytes = new byte[this.sensor.ColorStream.FramePixelDataLength];
                 this.colorBitmap = new WriteableBitmap(this.sensor.ColorStream.FrameWidth, this.sensor.ColorStream.FrameHeight, 96.0, 96.0, PixelFormats.Bgr32, null);
-                Canvas.Source = colorBitmap;
+                //Canvas.Source = colorBitmap;
 
                 // Start the sensor!
                 try
@@ -153,10 +162,22 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             // Acquire data from the SkeletonFrameReadyEventArgs...
             using (SkeletonFrame skeletonFrame = e.OpenSkeletonFrame())
             {
-                if (skeletonFrame != null)
+                if (skeletonFrame == null)
                 {
-                    skeletons = new Skeleton[skeletonFrame.SkeletonArrayLength];
+                    return;
+                }
+                skeletons = new Skeleton[skeletonFrame.SkeletonArrayLength];
+      
+                try
+                {
                     skeletonFrame.CopySkeletonDataTo(skeletons);
+                    var accelerometerReading = sensor.AccelerometerGetCurrentReading();
+                    interactionStream.ProcessSkeleton(skeletons, accelerometerReading, skeletonFrame.Timestamp);
+                }
+                catch (InvalidOperationException)
+                {
+                    // SkeletonFrame functions may throw when the sensor gets
+                    // into a bad state.  Ignore the frame in that case.
                 }
             }
 
@@ -179,18 +200,18 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             {
                 if (null != colorFrame)
                 {
-                    using (DrawingContext dc = this.drawingGroup.Open())
-                    {
-                        // Copy the pixel data from the image to a temporary array
-                        colorFrame.CopyPixelDataTo(this.pixelBytes);
+                    //using (DrawingContext dc = this.drawingGroup.Open())
+                    //{
+                    //    // Copy the pixel data from the image to a temporary array
+                    //    colorFrame.CopyPixelDataTo(this.pixelBytes);
 
-                        // Write the pixel data into our bitmap
-                        this.colorBitmap.WritePixels(
-                            new Int32Rect(0, 0, this.colorBitmap.PixelWidth, this.colorBitmap.PixelHeight),
-                            this.pixelBytes,
-                            this.colorBitmap.PixelWidth * sizeof(int),
-                            0);
-                    }
+                    //    // Write the pixel data into our bitmap
+                    //    //this.colorBitmap.WritePixels(
+                    //    //    new Int32Rect(0, 0, this.colorBitmap.PixelWidth, this.colorBitmap.PixelHeight),
+                    //    //    this.pixelBytes,
+                    //    //    this.colorBitmap.PixelWidth * sizeof(int),
+                    //    //    0);
+                    //}
                 }
             }
         }
@@ -203,6 +224,21 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         private void SensorDepthFrameReady(object sender, DepthImageFrameReadyEventArgs e)
         {
             // Acquire data from DepthImageFrameReadyEventArgs and do stuff with it
+             using (DepthImageFrame depthFrame = e.OpenDepthImageFrame())
+             {
+                if (depthFrame == null)
+                    return;
+     
+                try
+                {
+                    interactionStream.ProcessDepth(depthFrame.GetRawPixelData(), depthFrame.Timestamp);
+                }
+                catch (InvalidOperationException)
+                {
+                    // DepthFrame functions may throw when the sensor gets
+                    // into a bad state.  Ignore the frame in that case.
+                }
+            }
         }
 
         /// <summary>
@@ -213,6 +249,44 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         private void SensorAllFramesReady(object sender, AllFramesReadyEventArgs e)
         {
             // Acquire data from AllFramesReadyEventArgs and do stuff with it
+        }
+
+        private void SensorInteractionFrameReady(object sender, InteractionFrameReadyEventArgs e)
+        {
+            // Acquire data from SensorInteractionFramesReadyEventArgs and do stuff with it
+            UserInfo[] interactionData;
+            
+
+            using (InteractionFrame interactionFrame = e.OpenInteractionFrame()) //dispose as soon as possible
+            {
+                if (interactionFrame == null)
+                    return;
+                interactionData = new UserInfo[InteractionFrame.UserInfoArrayLength];
+                interactionFrame.CopyInteractionDataTo(interactionData);
+                using (DrawingContext dc = this.drawingGroup.Open())
+                {
+                    double width = this.layoutGrid.RenderSize.Width;
+                    double height = this.layoutGrid.RenderSize.Height;
+                    dc.DrawRectangle(Brushes.White, null, new Rect(0, 0, width, height));
+                    foreach (UserInfo u in interactionData) {
+                        if (u.SkeletonTrackingId != 0)
+                        {
+                            foreach (InteractionHandPointer pointer in u.HandPointers)
+                            {
+                                double x = pointer.X;
+                                if (x < 0) x = 0;
+                                if (x > 1) x = 1;
+                                double y = pointer.Y;
+                                if (y < 0) y = 0;
+                                if (y > 1) y = 1;
+                                double rw = 100;
+                                double rh = 100;
+                                dc.DrawRectangle(basicColorBrush, inferredBonePen, new Rect((width - rw) * x, (height - rh) * y, rw, rh));
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
