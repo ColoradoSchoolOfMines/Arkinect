@@ -56,6 +56,12 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
 
         private InteractionStream interactionStream;
 
+        private Point ballPoint;
+
+        private Point ballVelocity;
+
+        private const int BALLRADIUS = 20;
+
         /// <summary>
         /// Drawing group for skeleton rendering output
         /// </summary>
@@ -136,6 +142,12 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                     this.sensor = null;
                 }
             }
+
+            double width = this.layoutGrid.RenderSize.Width;
+            double height = this.layoutGrid.RenderSize.Height;
+            
+            ballPoint = new Point(width / 2, height / 2);
+            ballVelocity = new Point(10, 10);
 
             // No sensor, complain
             if (null == this.sensor)
@@ -260,6 +272,31 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
 
         private void SensorInteractionFrameReady(object sender, InteractionFrameReadyEventArgs e)
         {
+            double width = this.layoutGrid.RenderSize.Width;
+            double height = this.layoutGrid.RenderSize.Height;
+            ballPoint.X = ballPoint.X + ballVelocity.X;
+            ballPoint.Y = ballPoint.Y + ballVelocity.Y;
+            if(ballPoint.X < BALLRADIUS)
+            {
+                ballVelocity.X = ballVelocity.X * -1;
+                ballPoint.X = 2 * BALLRADIUS - ballPoint.X;
+            }
+            if(ballPoint.Y < BALLRADIUS)
+            {
+                ballVelocity.Y = ballVelocity.Y * -1;
+                ballPoint.Y = 2 * BALLRADIUS - ballPoint.Y;
+            }
+            if(ballPoint.X > width - BALLRADIUS)
+            {
+                ballVelocity.X = ballVelocity.X * -1;
+                ballPoint.X = (width - BALLRADIUS - ballPoint.X) + (width - BALLRADIUS);
+            }
+            if(ballPoint.Y > height - BALLRADIUS)
+            {
+                ballVelocity.Y = ballVelocity.Y * -1;
+                ballPoint.Y = (height - BALLRADIUS - ballPoint.Y) + (height - BALLRADIUS);
+            }
+
             // Acquire data from SensorInteractionFramesReadyEventArgs and do stuff with it
             UserInfo[] interactionData;
             
@@ -272,9 +309,9 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 interactionFrame.CopyInteractionDataTo(interactionData);
                 using (DrawingContext dc = this.drawingGroup.Open())
                 {
-                    double width = this.layoutGrid.RenderSize.Width;
-                    double height = this.layoutGrid.RenderSize.Height;
                     dc.DrawRectangle(Brushes.White, null, new Rect(0, 0, width, height));
+                    dc.DrawEllipse(basicColorBrush, inferredBonePen, ballPoint, BALLRADIUS, BALLRADIUS);
+
                     foreach (UserInfo u in interactionData) {
                         if (u.SkeletonTrackingId != 0)
                         {
