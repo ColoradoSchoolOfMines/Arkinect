@@ -57,13 +57,9 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
 
         private InteractionStream interactionStream;
 
-        private Point ballPoint;
-
-        private Point ballVelocity;
-
-        private const int BALLRADIUS = 20;
-
         private Ball ball;
+
+        private Block paddle;
 
         /// <summary>
         /// Drawing group for skeleton rendering output
@@ -150,6 +146,8 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             double height = this.layoutGrid.RenderSize.Height;
             
             ball = new Ball(new Point(width / 2, height / 2), new Point(10, 10));
+
+            paddle = new Block(PADDLEWIDTH, PADDLEWIDTH, new Point(width / 2, height - PADDLEHEIGHT / 2), false);
 
             // No sensor, complain
             if (null == this.sensor)
@@ -308,40 +306,44 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                     return;
                 interactionData = new UserInfo[InteractionFrame.UserInfoArrayLength];
                 interactionFrame.CopyInteractionDataTo(interactionData);
-                using (DrawingContext dc = this.drawingGroup.Open())
-                {
-                    dc.DrawRectangle(Brushes.White, null, new Rect(0, 0, width, height));
-                    dc.DrawEllipse(basicColorBrush, inferredBonePen, ball.loc, Ball.BALL_RADIUS, Ball.BALL_RADIUS);
 
-                    foreach (UserInfo u in interactionData) {
-                        if (u.SkeletonTrackingId != 0)
+                foreach (UserInfo u in interactionData)
+                {
+                    if (u.SkeletonTrackingId != 0)
+                    {
+                        if (humanNumber == -1)
                         {
-                            if(humanNumber == -1)
-                            {
-                                humanNumber = u.SkeletonTrackingId;
-                            }
-                            if(humanNumber != u.SkeletonTrackingId)
+                            humanNumber = u.SkeletonTrackingId;
+                        }
+                        if (humanNumber != u.SkeletonTrackingId)
+                        {
+                            continue;
+                        }
+                        foreach (InteractionHandPointer pointer in u.HandPointers)
+                        {
+                            if (!pointer.IsPrimaryForUser)
                             {
                                 continue;
                             }
-                            foreach (InteractionHandPointer pointer in u.HandPointers)
-                            {
-                                if(!pointer.IsPrimaryForUser)
-                                {
-                                    continue;
-                                }
 
-                                double x = pointer.X;
-                                if (x < 0) x = 0;
-                                if (x > 1) x = 1;
-                                x = x * (width - PADDLEWIDTH);
-                                double y = height - PADDLEHEIGHT;
-                                //dc.DrawRectangle(basicColorBrush, inferredBonePen, new Rect((width - rw) * x, (height - rh) * y, rw, rh));
-                                dc.DrawRectangle(basicColorBrush, inferredBonePen, new Rect(x, y, PADDLEWIDTH, PADDLEHEIGHT));
-                            }
+                            double x = pointer.X;
+                            if (x < 0) x = 0;
+                            if (x > 1) x = 1;
+                            x = x * (width - PADDLEWIDTH) + PADDLEWIDTH/2;
+                            paddle.loc = new Point(x, paddle.loc.Y);
                         }
                     }
                 }
+            }
+            using (DrawingContext dc = this.drawingGroup.Open())
+            {
+                // Draw empty white canvas to fill screen
+                dc.DrawRectangle(Brushes.White, null, new Rect(0, 0, width, height));
+                // Draw ball
+                dc.DrawEllipse(basicColorBrush, inferredBonePen, ball.loc, Ball.BALL_RADIUS, Ball.BALL_RADIUS);
+                // Draw paddle
+                dc.DrawRectangle(Brushes.Red, null, new Rect(paddle.loc.X - PADDLEWIDTH / 2, paddle.loc.Y - PADDLEHEIGHT / 2, PADDLEWIDTH, PADDLEHEIGHT));
+                System.Diagnostics.Debug.WriteLine(paddle.loc.X);
             }
         }
     }
