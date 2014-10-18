@@ -37,14 +37,16 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// </summary>
         private KinectSensor sensor;
 
-        double width;
-        double height;
+        double screenWidth;
+        double screenHeight;
 
         //The ID of the human that we want to play the game
         private int humanNumber = -1;
 
         private const int PADDLEHEIGHT = 15;
         private const int PADDLEWIDTH = 600;
+
+        private int POINTS_PER_BLOCK = 100;
 
         private InteractionStream interactionStream;
 
@@ -133,12 +135,12 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 }
             }
 
-            width = this.layoutGrid.RenderSize.Width;
-            height = this.layoutGrid.RenderSize.Height;
+            screenWidth = this.layoutGrid.RenderSize.Width;
+            screenHeight = this.layoutGrid.RenderSize.Height;
             
-            ball = newBall(width, height);
+            ball = newBall(screenWidth, screenHeight);
 
-            paddle = new Block(PADDLEWIDTH, PADDLEHEIGHT, new Point(width / 2, height - PADDLEHEIGHT / 2), false);
+            paddle = new Block(PADDLEWIDTH, PADDLEHEIGHT, new Point(screenWidth / 2, screenHeight - PADDLEHEIGHT / 2), false);
 
             resetGame();
 
@@ -228,9 +230,9 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             if (humanNumber != -1)
             {
                 ball.move();
-                if (ball.loc.Y > height - Ball.BALL_RADIUS)
+                if (ball.loc.Y > screenHeight - Ball.BALL_RADIUS)
                 {
-                    ball = newBall(width, height);
+                    ball = newBall(screenWidth, screenHeight);
                     gameState.lives = gameState.lives - 1;
                     if (gameState.lives < 0)
                     {
@@ -245,11 +247,11 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                     if (ball.collideOutside(block.getCollisionBox()) && block.isDestroyable)
                     {
                         removals.Add(block);
-                        gameState.score = gameState.score + 100;
+                        gameState.score = gameState.score + POINTS_PER_BLOCK;
                     }
                 }
                 blocks.RemoveAll(i => removals.Contains(i));
-                ball.collideInside(new Rect(0, 0, width, height));
+                ball.collideInside(new Rect(0, 0, screenWidth, screenHeight));
             }
 
             // Acquire data from SensorInteractionFramesReadyEventArgs and do stuff with it
@@ -285,7 +287,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                             double x = pointer.X;
                             if (x < 0) x = 0;
                             if (x > 1) x = 1;
-                            x = x * (width - PADDLEWIDTH) + PADDLEWIDTH/2;
+                            x = x * (screenWidth - PADDLEWIDTH) + PADDLEWIDTH/2;
                             paddle.loc = new Point(x, paddle.loc.Y);
                         }
                     }
@@ -300,7 +302,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             using (DrawingContext dc = this.drawingGroup.Open())
             {
                 // Draw empty white canvas to fill screen
-                dc.DrawRectangle(Brushes.White, null, new Rect(0, 0, width, height));
+                dc.DrawRectangle(Brushes.White, null, new Rect(0, 0, screenWidth, screenHeight));
                 // Draw ball
                 dc.DrawEllipse(basicColorBrush, inferredBonePen, ball.loc, Ball.BALL_RADIUS, Ball.BALL_RADIUS);
                 // Draw paddle
@@ -329,7 +331,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             {
                 for (int j = 0; j < 5; j++)
                 {
-                    blocks.Add(new Block(width / 10, height / 20, new Point(width / 10 + i * width / 5, height / 20 + j * height / 10), true));
+                    blocks.Add(new Block(screenWidth / 10, screenHeight / 20, new Point(screenWidth / 10 + i * screenWidth / 5, screenHeight / 20 + j * screenHeight / 10), true));
                 }
             }
         }
