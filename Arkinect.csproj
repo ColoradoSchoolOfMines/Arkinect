@@ -8,7 +8,7 @@
     <ProjectGuid>{8121846D-923E-4BB0-8647-30DA753D156E}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Microsoft.Samples.Kinect.SkeletonBasics</RootNamespace>
+    <RootNamespace>ACMX.Games.Arkinect</RootNamespace>
     <AssemblyName>KinectMinimal2D</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
@@ -75,6 +75,7 @@
     <Compile Include="ArkinectInteractionClient.cs" />
     <Compile Include="Ball.cs" />
     <Compile Include="Block.cs" />
+    <Compile Include="GameState.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>

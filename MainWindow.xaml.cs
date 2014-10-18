@@ -37,11 +37,13 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// </summary>
         private KinectSensor sensor;
 
+        double width;
+        double height;
+
         //The ID of the human that we want to play the game
         private int humanNumber = -1;
 
         private const int PADDLEHEIGHT = 15;
-
         private const int PADDLEWIDTH = 600;
 
         private InteractionStream interactionStream;
@@ -55,6 +57,8 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         private Block paddle;
 
         private List<Block> blocks = new List<Block>();
+
+        private GameState gameState;
 
         /// <summary>
         /// Drawing group for skeleton rendering output
@@ -129,25 +133,19 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 }
             }
 
-            double width = this.layoutGrid.RenderSize.Width;
-            double height = this.layoutGrid.RenderSize.Height;
+            width = this.layoutGrid.RenderSize.Width;
+            height = this.layoutGrid.RenderSize.Height;
             
             ball = newBall(width, height);
 
             paddle = new Block(PADDLEWIDTH, PADDLEHEIGHT, new Point(width / 2, height - PADDLEHEIGHT / 2), false);
 
-            for (int i = 0; i < 5; i++)
-            {
-                for (int j = 0; j < 5; j++)
-                {
-                    blocks.Add(new Block(width / 10, height / 20, new Point(width/10 + i * width / 5, height / 20 + j * height / 10), true));
-                }
-            }
+            resetGame();
 
             // No sensor, complain
             if (null == this.sensor)
             {
-                this.statusBarText.Text = Properties.Resources.NoKinectReady;
+                this.statusBarText.Text = ACMX.Games.Arkinect.Properties.Resources.NoKinectReady;
             }
         }
 
@@ -223,16 +221,22 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
 
         private void SensorInteractionFrameReady(object sender, InteractionFrameReadyEventArgs e)
         {
-            double width = this.layoutGrid.RenderSize.Width;
-            double height = this.layoutGrid.RenderSize.Height;
+            //double width = this.layoutGrid.RenderSize.Width;
+            //double height = this.layoutGrid.RenderSize.Height;
 
+            // Do ball movement and collisions if we have a human being tracked
             if (humanNumber != -1)
             {
-                // Do ball movement and collisions
                 ball.move();
                 if (ball.loc.Y > height - Ball.BALL_RADIUS)
                 {
                     ball = newBall(width, height);
+                    gameState.lives = gameState.lives - 1;
+                    if (gameState.lives < 0)
+                    {
+                        resetGame();
+                        return;
+                    }
                 }
                 ball.collideOutside(paddle.getCollisionBox());
                 List<Block> removals = new List<Block>();
@@ -241,6 +245,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                     if (ball.collideOutside(block.getCollisionBox()) && block.isDestroyable)
                     {
                         removals.Add(block);
+                        gameState.score = gameState.score + 100;
                     }
                 }
                 blocks.RemoveAll(i => removals.Contains(i));
@@ -290,6 +295,8 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                     humanNumber = -1;
                 }
             }
+
+            // Draw all the game objects
             using (DrawingContext dc = this.drawingGroup.Open())
             {
                 // Draw empty white canvas to fill screen
@@ -302,6 +309,27 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 foreach (Block block in blocks)
                 {
                     dc.DrawRectangle(Brushes.Blue, null, block.getCollisionBox());
+                }
+            }
+
+            // Display the player's score and lives remaining
+            this.statusBarText.Text = gameState.score.ToString() + " " + new String('X', gameState.lives);
+        }
+
+        private void resetGame()
+        {
+            gameState = new GameState
+            {
+                score = 0,
+                lives = 3
+            };
+
+            blocks = new List<Block>();
+            for (int i = 0; i < 5; i++)
+            {
+                for (int j = 0; j < 5; j++)
+                {
+                    blocks.Add(new Block(width / 10, height / 20, new Point(width / 10 + i * width / 5, height / 20 + j * height / 10), true));
                 }
             }
         }
