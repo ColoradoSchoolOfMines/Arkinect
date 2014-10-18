@@ -53,7 +53,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
 
         private const int PADDLEHEIGHT = 15;
 
-        private const int PADDLEWIDTH = 150;
+        private const int PADDLEWIDTH = 600;
 
         private InteractionStream interactionStream;
 
@@ -147,7 +147,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             
             ball = new Ball(new Point(width / 2, height / 2), new Point(10, 10));
 
-            paddle = new Block(PADDLEWIDTH, PADDLEWIDTH, new Point(width / 2, height - PADDLEHEIGHT / 2), false);
+            paddle = new Block(PADDLEWIDTH, PADDLEHEIGHT, new Point(width / 2, height - PADDLEHEIGHT / 2), false);
 
             // No sensor, complain
             if (null == this.sensor)
@@ -276,26 +276,8 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             double height = this.layoutGrid.RenderSize.Height;
 
             ball.move();
-            if (ball.loc.X < Ball.BALL_RADIUS)
-            {
-                ball.vel.Offset(-2 * ball.vel.X, 0);
-                ball.reflectX(Ball.BALL_RADIUS);
-            }
-            if (ball.loc.Y < Ball.BALL_RADIUS)
-            {
-                ball.vel.Offset(0, -2 * ball.vel.Y);
-                ball.reflectY(Ball.BALL_RADIUS);
-            }
-            if (ball.loc.X > width - Ball.BALL_RADIUS)
-            {
-                ball.vel.Offset(-2 * ball.vel.X, 0);
-                ball.reflectX(width - Ball.BALL_RADIUS);
-            }
-            if (ball.loc.Y > height - Ball.BALL_RADIUS)
-            {
-                ball.vel.Offset(0, -2 * ball.vel.Y);
-                ball.reflectY(height - Ball.BALL_RADIUS);
-            }
+            ball.collideOutside(paddle.getCollisionBox());
+            ball.collideInside(new Rect(0, 0, width, height));
 
             // Acquire data from SensorInteractionFramesReadyEventArgs and do stuff with it
             UserInfo[] interactionData;
@@ -343,7 +325,6 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 dc.DrawEllipse(basicColorBrush, inferredBonePen, ball.loc, Ball.BALL_RADIUS, Ball.BALL_RADIUS);
                 // Draw paddle
                 dc.DrawRectangle(Brushes.Red, null, new Rect(paddle.loc.X - PADDLEWIDTH / 2, paddle.loc.Y - PADDLEHEIGHT / 2, PADDLEWIDTH, PADDLEHEIGHT));
-                System.Diagnostics.Debug.WriteLine(paddle.loc.X);
             }
         }
     }

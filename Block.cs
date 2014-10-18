@@ -22,5 +22,10 @@ namespace ACMX.Games.Arkinect
             this.loc = loc;
             this.isDestroyable = isDestroyable;
         }
+
+        public Rect getCollisionBox()
+        {
+            return new Rect(loc.X - width / 2, loc.Y - height / 2, width, height);
+        }
     }
 }

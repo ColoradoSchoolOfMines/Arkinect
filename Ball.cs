@@ -38,5 +38,49 @@ namespace ACMX.Games.Arkinect
         {
             loc.Offset(0, -2 * (loc.Y - axis));
         }
+
+        public void collideInside(Rect obj)
+        {
+            if (loc.X < obj.Left + Ball.BALL_RADIUS)
+            {
+                vel.Offset(-2 * vel.X, 0);
+                reflectX(Ball.BALL_RADIUS);
+            }
+            if (loc.Y < obj.Top + Ball.BALL_RADIUS)
+            {
+                vel.Offset(0, -2 * vel.Y);
+                reflectY(Ball.BALL_RADIUS);
+            }
+            if (loc.X > obj.Right - Ball.BALL_RADIUS)
+            {
+                vel.Offset(-2 * vel.X, 0);
+                reflectX(obj.Right - Ball.BALL_RADIUS);
+            }
+            if (loc.Y > obj.Bottom - Ball.BALL_RADIUS)
+            {
+                vel.Offset(0, -2 * vel.Y);
+                reflectY(obj.Bottom - Ball.BALL_RADIUS);
+            }
+        }
+
+        public bool collideOutside(Rect obj)
+        {
+            Rect selfRect = new Rect(loc.X - BALL_RADIUS, loc.Y - BALL_RADIUS, 2 * BALL_RADIUS, 2 * BALL_RADIUS);
+            Rect intersect = Rect.Intersect(obj, selfRect);
+            if (intersect.IsEmpty)
+            {
+                return false;
+            }
+            if (intersect.Width < intersect.Height)
+            {
+                vel.Offset(-2 * vel.X, 0);
+            }
+            else
+            {
+                vel.Offset(0, -2 * vel.Y);
+                reflectY(obj.Top - BALL_RADIUS);
+            }
+            return true;
+        }
     }
 }
