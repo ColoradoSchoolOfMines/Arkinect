@@ -226,23 +226,26 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             double width = this.layoutGrid.RenderSize.Width;
             double height = this.layoutGrid.RenderSize.Height;
 
-            // Do ball movement and collisions
-            ball.move();
-            if (ball.loc.Y > height - Ball.BALL_RADIUS)
+            if (humanNumber != -1)
             {
-                ball = newBall(width, height);
-            }
-            ball.collideOutside(paddle.getCollisionBox());
-            List<Block> removals = new List<Block>();
-            foreach (Block block in blocks)
-            {
-                if (ball.collideOutside(block.getCollisionBox()) && block.isDestroyable)
+                // Do ball movement and collisions
+                ball.move();
+                if (ball.loc.Y > height - Ball.BALL_RADIUS)
                 {
-                    removals.Add(block);
+                    ball = newBall(width, height);
                 }
+                ball.collideOutside(paddle.getCollisionBox());
+                List<Block> removals = new List<Block>();
+                foreach (Block block in blocks)
+                {
+                    if (ball.collideOutside(block.getCollisionBox()) && block.isDestroyable)
+                    {
+                        removals.Add(block);
+                    }
+                }
+                blocks.RemoveAll(i => removals.Contains(i));
+                ball.collideInside(new Rect(0, 0, width, height));
             }
-            blocks.RemoveAll(i => removals.Contains(i));
-            ball.collideInside(new Rect(0, 0, width, height));
 
             // Acquire data from SensorInteractionFramesReadyEventArgs and do stuff with it
             UserInfo[] interactionData;
