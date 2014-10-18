@@ -59,6 +59,10 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         private InteractionStream interactionStream;
 
         private Ball ball;
+        private Ball newBall(double screenWidth, double screenHeight)
+        {
+            return new Ball(new Point(screenWidth / 2, screenHeight / 2), new Point((new Random().Next(1, 3) == 1 ? -10 : 10), 10));
+        }
 
         private Block paddle;
 
@@ -148,7 +152,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             double width = this.layoutGrid.RenderSize.Width;
             double height = this.layoutGrid.RenderSize.Height;
             
-            ball = new Ball(new Point(width / 2, height / 2), new Point(10, 10));
+            ball = newBall(width, height);
 
             paddle = new Block(PADDLEWIDTH, PADDLEHEIGHT, new Point(width / 2, height - PADDLEHEIGHT / 2), false);
 
@@ -287,6 +291,10 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             double height = this.layoutGrid.RenderSize.Height;
 
             ball.move();
+            if (ball.loc.Y > height - Ball.BALL_RADIUS)
+            {
+                ball = newBall(width, height);
+            }
             ball.collideOutside(paddle.getCollisionBox());
             List<Block> removals = new List<Block>();
             foreach (Block block in blocks)
