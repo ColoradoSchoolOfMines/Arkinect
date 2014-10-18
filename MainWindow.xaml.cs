@@ -23,18 +23,6 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
     public partial class MainWindow : Window
     {
         /// <summary>
-        /// A bitmap buffer to put pixel data from the Kinect into for rendering by the WPF Image
-        /// </summary>
-        private WriteableBitmap colorBitmap;
-
-        /// <summary>
-        /// A byte array to put raw image data from the Kinect into for transformation into a bitmap
-        /// </summary>
-        private byte[] pixelBytes;
-
-        
-
-        /// <summary>
         /// A brush that can be used to draw things on screen in the specified color
         /// </summary>
         private readonly Brush basicColorBrush = new SolidColorBrush(Color.FromRgb(255, 0, 0));
@@ -121,22 +109,14 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 // Turn on the proper streams to receive event frames
                 // Disable lines for event streams you are not using
                 this.sensor.SkeletonStream.Enable();
-                this.sensor.ColorStream.Enable();
                 this.sensor.DepthStream.Enable();
                 this.interactionStream = new InteractionStream(this.sensor, new ArkinectInteractionClient());
 
                 // Add an event handlers to be called whenever there is new color frame data
                 // Disable event handler registrations for events you are not using
                 this.sensor.SkeletonFrameReady += this.SensorSkeletonFrameReady;
-                this.sensor.AllFramesReady += this.SensorAllFramesReady;
-                this.sensor.ColorFrameReady += this.SensorColorFrameReady;
                 this.sensor.DepthFrameReady += this.SensorDepthFrameReady;
                 this.interactionStream.InteractionFrameReady += this.SensorInteractionFrameReady;
-
-                // Prepare the image byte buffer and the bitmap pixel buffer, then bind the bitmap to the WPF Image canvas
-                this.pixelBytes = new byte[this.sensor.ColorStream.FramePixelDataLength];
-                this.colorBitmap = new WriteableBitmap(this.sensor.ColorStream.FrameWidth, this.sensor.ColorStream.FrameHeight, 96.0, 96.0, PixelFormats.Bgr32, null);
-                //Canvas.Source = colorBitmap;
 
                 // Start the sensor!
                 try
@@ -214,40 +194,6 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                     // into a bad state.  Ignore the frame in that case.
                 }
             }
-
-            // ...and do stuff with it!
-            using (DrawingContext dc = this.drawingGroup.Open())
-            {
-                // Do any drawing here with the acquired DrawingContext and skeleton information
-            }
-        }
-
-        /// <summary>
-        /// Event handler for Kinect sensor's ColorFrameReady event
-        /// </summary>
-        /// <param name="sender">object sending the event</param>
-        /// <param name="e">event arguments</param>
-        private void SensorColorFrameReady(object sender, ColorImageFrameReadyEventArgs e)
-        {
-            // Acquire data from ColorImageFrameReadyEventArgs and do stuff with it
-            using (ColorImageFrame colorFrame = e.OpenColorImageFrame())
-            {
-                if (null != colorFrame)
-                {
-                    //using (DrawingContext dc = this.drawingGroup.Open())
-                    //{
-                    //    // Copy the pixel data from the image to a temporary array
-                    //    colorFrame.CopyPixelDataTo(this.pixelBytes);
-
-                    //    // Write the pixel data into our bitmap
-                    //    //this.colorBitmap.WritePixels(
-                    //    //    new Int32Rect(0, 0, this.colorBitmap.PixelWidth, this.colorBitmap.PixelHeight),
-                    //    //    this.pixelBytes,
-                    //    //    this.colorBitmap.PixelWidth * sizeof(int),
-                    //    //    0);
-                    //}
-                }
-            }
         }
 
         /// <summary>
@@ -275,21 +221,12 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             }
         }
 
-        /// <summary>
-        /// Event handler for Kinect sensor's AllFrameReady event
-        /// </summary>
-        /// <param name="sender">object sending the event</param>
-        /// <param name="e">event arguments</param>
-        private void SensorAllFramesReady(object sender, AllFramesReadyEventArgs e)
-        {
-            // Acquire data from AllFramesReadyEventArgs and do stuff with it
-        }
-
         private void SensorInteractionFrameReady(object sender, InteractionFrameReadyEventArgs e)
         {
             double width = this.layoutGrid.RenderSize.Width;
             double height = this.layoutGrid.RenderSize.Height;
 
+            // Do ball movement and collisions
             ball.move();
             if (ball.loc.Y > height - Ball.BALL_RADIUS)
             {
