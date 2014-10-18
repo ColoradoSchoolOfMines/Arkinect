@@ -16,6 +16,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
     using System;
     using ACMX.Games.Arkinect;
     using System.Collections.Generic;
+    using System.Timers;
 
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -61,6 +62,8 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         private List<Block> blocks = new List<Block>();
 
         private GameState gameState;
+
+        private Timer quitTimer = new Timer(5000);
 
         /// <summary>
         /// Drawing group for skeleton rendering output
@@ -149,6 +152,19 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             {
                 this.statusBarText.Text = ACMX.Games.Arkinect.Properties.Resources.NoKinectReady;
             }
+
+            // Prepare a delegated callback
+            quitTimer.Elapsed += delegate(System.Object o, ElapsedEventArgs eea)
+            {
+                if (humanNumber == -1)
+                {
+                    Application.Current.Dispatcher.BeginInvokeShutdown(System.Windows.Threading.DispatcherPriority.Normal);
+                    if (null != sensor)
+                    {
+                        sensor.Stop();
+                    }
+                }
+            };
         }
 
         /// <summary>
@@ -271,6 +287,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                         if (humanNumber == -1)
                         {
                             humanNumber = u.SkeletonTrackingId;
+                            quitTimer.Stop();
                         }
                         if (humanNumber != u.SkeletonTrackingId)
                         {
@@ -295,6 +312,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 if (!sawUserThisFrame)
                 {
                     humanNumber = -1;
+                    quitTimer.Start();
                 }
             }
 
