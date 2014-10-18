@@ -253,7 +253,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                     return;
                 interactionData = new UserInfo[InteractionFrame.UserInfoArrayLength];
                 interactionFrame.CopyInteractionDataTo(interactionData);
-
+                bool sawUserThisFrame = false;
                 foreach (UserInfo u in interactionData)
                 {
                     if (u.SkeletonTrackingId != 0)
@@ -266,6 +266,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                         {
                             continue;
                         }
+                        sawUserThisFrame = true;
                         foreach (InteractionHandPointer pointer in u.HandPointers)
                         {
                             if (!pointer.IsPrimaryForUser)
@@ -280,6 +281,10 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                             paddle.loc = new Point(x, paddle.loc.Y);
                         }
                     }
+                }
+                if (!sawUserThisFrame)
+                {
+                    humanNumber = -1;
                 }
             }
             using (DrawingContext dc = this.drawingGroup.Open())
