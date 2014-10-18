@@ -78,7 +78,6 @@ namespace ACMX.Games.Arkinect
             else
             {
                 vel.Offset(0, -2 * vel.Y);
-                reflectY(obj.Top - BALL_RADIUS);
             }
             return true;
         }

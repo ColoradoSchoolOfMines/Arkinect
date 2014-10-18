@@ -15,6 +15,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
     using Microsoft.Kinect.Toolkit.Interaction;
     using System;
     using ACMX.Games.Arkinect;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -60,6 +61,8 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         private Ball ball;
 
         private Block paddle;
+
+        private List<Block> blocks = new List<Block>();
 
         /// <summary>
         /// Drawing group for skeleton rendering output
@@ -148,6 +151,14 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             ball = new Ball(new Point(width / 2, height / 2), new Point(10, 10));
 
             paddle = new Block(PADDLEWIDTH, PADDLEHEIGHT, new Point(width / 2, height - PADDLEHEIGHT / 2), false);
+
+            for (int i = 0; i < 5; i++)
+            {
+                for (int j = 0; j < 5; j++)
+                {
+                    blocks.Add(new Block(width / 10, height / 20, new Point(width/10 + i * width / 5, height / 20 + j * height / 10), true));
+                }
+            }
 
             // No sensor, complain
             if (null == this.sensor)
@@ -277,6 +288,15 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
 
             ball.move();
             ball.collideOutside(paddle.getCollisionBox());
+            List<Block> removals = new List<Block>();
+            foreach (Block block in blocks)
+            {
+                if (ball.collideOutside(block.getCollisionBox()) && block.isDestroyable)
+                {
+                    removals.Add(block);
+                }
+            }
+            blocks.RemoveAll(i => removals.Contains(i));
             ball.collideInside(new Rect(0, 0, width, height));
 
             // Acquire data from SensorInteractionFramesReadyEventArgs and do stuff with it
@@ -325,6 +345,11 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 dc.DrawEllipse(basicColorBrush, inferredBonePen, ball.loc, Ball.BALL_RADIUS, Ball.BALL_RADIUS);
                 // Draw paddle
                 dc.DrawRectangle(Brushes.Red, null, new Rect(paddle.loc.X - PADDLEWIDTH / 2, paddle.loc.Y - PADDLEHEIGHT / 2, PADDLEWIDTH, PADDLEHEIGHT));
+                // Draw blocks
+                foreach (Block block in blocks)
+                {
+                    dc.DrawRectangle(Brushes.Blue, null, block.getCollisionBox());
+                }
             }
         }
     }
