@@ -14,6 +14,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
     using Microsoft.Kinect.Toolkit;
     using Microsoft.Kinect.Toolkit.Interaction;
     using System;
+    using ACMX.Games.Arkinect;
 
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -61,6 +62,8 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         private Point ballVelocity;
 
         private const int BALLRADIUS = 20;
+
+        private Ball ball;
 
         /// <summary>
         /// Drawing group for skeleton rendering output
@@ -146,8 +149,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             double width = this.layoutGrid.RenderSize.Width;
             double height = this.layoutGrid.RenderSize.Height;
             
-            ballPoint = new Point(width / 2, height / 2);
-            ballVelocity = new Point(10, 10);
+            ball = new Ball(new Point(width / 2, height / 2), new Point(10, 10));
 
             // No sensor, complain
             if (null == this.sensor)
@@ -274,32 +276,31 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         {
             double width = this.layoutGrid.RenderSize.Width;
             double height = this.layoutGrid.RenderSize.Height;
-            ballPoint.X = ballPoint.X + ballVelocity.X;
-            ballPoint.Y = ballPoint.Y + ballVelocity.Y;
-            if(ballPoint.X < BALLRADIUS)
+
+            ball.move();
+            if (ball.loc.X < Ball.BALL_RADIUS)
             {
-                ballVelocity.X = ballVelocity.X * -1;
-                ballPoint.X = 2 * BALLRADIUS - ballPoint.X;
+                ball.vel.Offset(-2 * ball.vel.X, 0);
+                ball.reflectX(Ball.BALL_RADIUS);
             }
-            if(ballPoint.Y < BALLRADIUS)
+            if (ball.loc.Y < Ball.BALL_RADIUS)
             {
-                ballVelocity.Y = ballVelocity.Y * -1;
-                ballPoint.Y = 2 * BALLRADIUS - ballPoint.Y;
+                ball.vel.Offset(0, -2 * ball.vel.Y);
+                ball.reflectY(Ball.BALL_RADIUS);
             }
-            if(ballPoint.X > width - BALLRADIUS)
+            if (ball.loc.X > width - Ball.BALL_RADIUS)
             {
-                ballVelocity.X = ballVelocity.X * -1;
-                ballPoint.X = (width - BALLRADIUS - ballPoint.X) + (width - BALLRADIUS);
+                ball.vel.Offset(-2 * ball.vel.X, 0);
+                ball.reflectX(width - Ball.BALL_RADIUS);
             }
-            if(ballPoint.Y > height - BALLRADIUS)
+            if (ball.loc.Y > height - Ball.BALL_RADIUS)
             {
-                ballVelocity.Y = ballVelocity.Y * -1;
-                ballPoint.Y = (height - BALLRADIUS - ballPoint.Y) + (height - BALLRADIUS);
+                ball.vel.Offset(0, -2 * ball.vel.Y);
+                ball.reflectY(height - Ball.BALL_RADIUS);
             }
 
             // Acquire data from SensorInteractionFramesReadyEventArgs and do stuff with it
             UserInfo[] interactionData;
-            
 
             using (InteractionFrame interactionFrame = e.OpenInteractionFrame()) //dispose as soon as possible
             {
@@ -310,7 +311,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 using (DrawingContext dc = this.drawingGroup.Open())
                 {
                     dc.DrawRectangle(Brushes.White, null, new Rect(0, 0, width, height));
-                    dc.DrawEllipse(basicColorBrush, inferredBonePen, ballPoint, BALLRADIUS, BALLRADIUS);
+                    dc.DrawEllipse(basicColorBrush, inferredBonePen, ball.loc, Ball.BALL_RADIUS, Ball.BALL_RADIUS);
 
                     foreach (UserInfo u in interactionData) {
                         if (u.SkeletonTrackingId != 0)
