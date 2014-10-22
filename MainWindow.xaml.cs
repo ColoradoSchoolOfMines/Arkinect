@@ -44,18 +44,17 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         //The ID of the human that we want to play the game
         private int humanNumber = -1;
 
+        private const int START_LIVES = 3;
+
         private const int PADDLEHEIGHT = 15;
-        private const int PADDLEWIDTH = 600;
+        private int PADDLE_START_WIDTH = 600;
 
         private int POINTS_PER_BLOCK = 100;
 
         private InteractionStream interactionStream;
 
+        private double BALL_SPEED = 20;
         private Ball ball;
-        private Ball newBall(double screenWidth, double screenHeight)
-        {
-            return new Ball(new Point(screenWidth / 2, screenHeight / 2), new Point((new Random().Next(1, 3) == 1 ? -10 : 10), 10));
-        }
 
         private Block paddle;
 
@@ -143,7 +142,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             
             ball = newBall(screenWidth, screenHeight);
 
-            paddle = new Block(PADDLEWIDTH, PADDLEHEIGHT, new Point(screenWidth / 2, screenHeight - PADDLEHEIGHT / 2), false);
+            paddle = newPaddle(screenWidth, screenHeight);
 
             resetGame();
 
@@ -165,6 +164,11 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                     }
                 }
             };
+        }
+
+        private Block newPaddle(double screenWidth, double screenHeight)
+        {
+            return new Block(PADDLE_START_WIDTH, PADDLEHEIGHT, new Point(screenWidth / 2, screenHeight - PADDLEHEIGHT / 2), false);
         }
 
         /// <summary>
@@ -239,35 +243,10 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
 
         private void SensorInteractionFrameReady(object sender, InteractionFrameReadyEventArgs e)
         {
-            //double width = this.layoutGrid.RenderSize.Width;
-            //double height = this.layoutGrid.RenderSize.Height;
-
             // Do ball movement and collisions if we have a human being tracked
             if (humanNumber != -1)
             {
-                ball.move();
-                if (ball.loc.Y > screenHeight - Ball.BALL_RADIUS)
-                {
-                    ball = newBall(screenWidth, screenHeight);
-                    gameState.lives = gameState.lives - 1;
-                    if (gameState.lives < 0)
-                    {
-                        resetGame();
-                        return;
-                    }
-                }
-                ball.collideOutside(paddle.getCollisionBox());
-                List<Block> removals = new List<Block>();
-                foreach (Block block in blocks)
-                {
-                    if (ball.collideOutside(block.getCollisionBox()) && block.isDestroyable)
-                    {
-                        removals.Add(block);
-                        gameState.score = gameState.score + POINTS_PER_BLOCK;
-                    }
-                }
-                blocks.RemoveAll(i => removals.Contains(i));
-                ball.collideInside(new Rect(0, 0, screenWidth, screenHeight));
+                runCollisions();
             }
 
             // Acquire data from SensorInteractionFramesReadyEventArgs and do stuff with it
@@ -304,7 +283,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                             double x = pointer.X;
                             if (x < 0) x = 0;
                             if (x > 1) x = 1;
-                            x = x * (screenWidth - PADDLEWIDTH) + PADDLEWIDTH/2;
+                            x = x * (screenWidth - paddle.width) + paddle.width/2;
                             paddle.loc = new Point(x, paddle.loc.Y);
                         }
                     }
@@ -316,6 +295,42 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 }
             }
             draw();
+        }
+
+        private void runCollisions()
+        {
+            for (double movement = Math.Sqrt(ball.vel.X * ball.vel.X + ball.vel.Y * ball.vel.Y); movement > 0; movement -= PADDLEHEIGHT)
+            {
+                ball.limitedMove(Math.Min(movement, PADDLEHEIGHT));
+                if (ball.loc.Y > screenHeight - Ball.BALL_RADIUS)
+                {
+                    ball = newBall(screenWidth, screenHeight);
+                    paddle = newPaddle(screenWidth, screenHeight);
+                    gameState.lives = gameState.lives - 1;
+                    if (gameState.lives < 0)
+                    {
+                        resetGame();
+                        return;
+                    }
+                }
+                ball.collideOutside(paddle.getCollisionBox());
+                List<Block> removals = new List<Block>();
+                foreach (Block block in blocks)
+                {
+                    if (ball.collideOutside(block.getCollisionBox()) && block.isDestroyable)
+                    {
+                        removals.Add(block);
+                        gameState.score = gameState.score + POINTS_PER_BLOCK;
+                        paddle = new Block((int)(paddle.width * .99), paddle.height, paddle.loc, paddle.isDestroyable);
+                    }
+                }
+                blocks.RemoveAll(i => removals.Contains(i));
+                if (blocks.Count == 0)
+                {
+                    blocks = BlockLayer.randomBlocks(screenWidth, screenHeight);
+                }
+                ball.collideInside(new Rect(0, 0, screenWidth, screenHeight));
+            }
         }
 
         /// <summary>
@@ -331,7 +346,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 // Draw ball
                 dc.DrawEllipse(basicColorBrush, inferredBonePen, ball.loc, Ball.BALL_RADIUS, Ball.BALL_RADIUS);
                 // Draw paddle
-                dc.DrawRectangle(Brushes.Red, null, new Rect(paddle.loc.X - PADDLEWIDTH / 2, paddle.loc.Y - PADDLEHEIGHT / 2, PADDLEWIDTH, PADDLEHEIGHT));
+                dc.DrawRectangle(Brushes.Red, null, new Rect(paddle.loc.X - paddle.width / 2, paddle.loc.Y - PADDLEHEIGHT / 2, paddle.width, PADDLEHEIGHT));
                 // Draw blocks
                 foreach (Block block in blocks)
                 {
@@ -344,22 +359,20 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             this.LivesText.Text = new String('O', gameState.lives);
         }
 
+        private Ball newBall(double screenWidth, double screenHeight)
+        {
+            return new Ball(new Point(screenWidth / 2, screenHeight / 2), new Point((new Random().Next(1, 3) == 1 ? -BALL_SPEED : BALL_SPEED), BALL_SPEED));
+        }
+
         private void resetGame()
         {
             gameState = new GameState
             {
                 score = 0,
-                lives = 3
+                lives = START_LIVES
             };
 
-            blocks = new List<Block>();
-            for (int i = 0; i < 5; i++)
-            {
-                for (int j = 0; j < 5; j++)
-                {
-                    blocks.Add(new Block(screenWidth / 10, screenHeight / 20, new Point(screenWidth / 10 + i * screenWidth / 5, screenHeight / 20 + j * screenHeight / 10), true));
-                }
-            }
+            blocks = BlockLayer.randomBlocks(screenWidth, screenHeight);
         }
     }
 }

@@ -19,6 +19,13 @@ namespace ACMX.Games.Arkinect
             vel = v;
         }
 
+        public void limitedMove(double limit)
+        {
+            double ratio = limit / Math.Sqrt(vel.X * vel.X + vel.Y * vel.Y);
+            ratio = Math.Min(1, ratio);
+            move(vel.X * ratio, vel.Y * ratio);
+        }
+
         public void move(double dx, double dy)
         {
             loc.Offset(dx, dy);

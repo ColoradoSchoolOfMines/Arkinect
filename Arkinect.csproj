@@ -75,6 +75,7 @@
     <Compile Include="ArkinectInteractionClient.cs" />
     <Compile Include="Ball.cs" />
     <Compile Include="Block.cs" />
+    <Compile Include="BlockLayer.cs" />
     <Compile Include="GameState.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
