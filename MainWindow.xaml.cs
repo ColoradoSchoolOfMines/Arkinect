@@ -315,12 +315,19 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                     quitTimer.Start();
                 }
             }
+            draw();
+        }
 
+        /// <summary>
+        /// Function to lay out a canvas and draw game objects on it
+        /// </summary>
+        private void draw()
+        {
             // Draw all the game objects
             using (DrawingContext dc = this.drawingGroup.Open())
             {
                 // Draw empty white canvas to fill screen
-                dc.DrawRectangle(Brushes.White, null, new Rect(0, 0, screenWidth, screenHeight));
+                dc.DrawRectangle(Brushes.Transparent, null, new Rect(0, 0, screenWidth, screenHeight));
                 // Draw ball
                 dc.DrawEllipse(basicColorBrush, inferredBonePen, ball.loc, Ball.BALL_RADIUS, Ball.BALL_RADIUS);
                 // Draw paddle
