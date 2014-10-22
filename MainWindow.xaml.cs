@@ -340,8 +340,8 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             }
 
             // Display the player's score and lives remaining
-            this.ScoreText.Text = gameState.score.ToString();
-            this.LivesText.Text = gameState.lives.ToString();
+            this.ScoreText.Text = gameState.score.ToString()+"pts";
+            this.LivesText.Text = new String('O', gameState.lives);
         }
 
         private void resetGame()
