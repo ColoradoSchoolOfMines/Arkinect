@@ -150,7 +150,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             // No sensor, complain
             if (null == this.sensor)
             {
-                this.statusBarText.Text = ACMX.Games.Arkinect.Properties.Resources.NoKinectReady;
+                this.ScoreText.Text = ACMX.Games.Arkinect.Properties.Resources.NoKinectReady;
             }
 
             // Prepare a delegated callback
@@ -340,7 +340,8 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             }
 
             // Display the player's score and lives remaining
-            this.statusBarText.Text = gameState.score.ToString() + " " + new String('X', gameState.lives);
+            this.ScoreText.Text = gameState.score.ToString();
+            this.LivesText.Text = gameState.lives.ToString();
         }
 
         private void resetGame()

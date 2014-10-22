@@ -46,23 +46,24 @@
             </Setter>
         </Style>
     </Window.Resources>
-    
+
     <Grid Name="layoutGrid" Margin="0 0 0 0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Viewbox Grid.RowSpan="3" Stretch="Uniform">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <TextBox BorderBrush="Transparent" Name="ScoreText" Grid.Row="3" Grid.Column="0" HorizontalAlignment="Left" FontSize="50">Foo</TextBox>
+        <TextBox BorderBrush="Transparent" Name="LivesText" Grid.Row="3" Grid.Column="1" HorizontalAlignment="Right" FontSize="50">Bar</TextBox>
+        <Viewbox Grid.RowSpan="3" Grid.ColumnSpan="2" Stretch="Uniform">
             <Image Name="Canvas" Stretch="Uniform"/>
         </Viewbox>
         <DockPanel Grid.Row="0" Margin="0 0 0 0">
             <Image Grid.Column="1" Stretch="None" HorizontalAlignment="Center" Margin="0 0 0 0"/>
         </DockPanel>
-        <StatusBar Grid.Row="3" HorizontalAlignment="Stretch" Name="statusBar" VerticalAlignment="Bottom" Background="Transparent" Foreground="{StaticResource MediumGreyBrush}">
-            <StatusBarItem Padding="10 5 0 5">
-                <TextBlock Name="statusBarText" Margin="0 0 0 0">TEXT</TextBlock>
-            </StatusBarItem>
-        </StatusBar>
     </Grid>
 </Window>
