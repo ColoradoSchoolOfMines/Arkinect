@@ -57,8 +57,8 @@
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <TextBox BorderBrush="Transparent" Name="ScoreText" Grid.Row="3" Grid.Column="0" HorizontalAlignment="Left" FontSize="50"></TextBox>
-        <TextBox BorderBrush="Transparent" Name="LivesText" Grid.Row="3" Grid.Column="1" HorizontalAlignment="Right" FontSize="50" Foreground="Red"></TextBox>
+        <TextBox Foreground="#575757" BorderBrush="Transparent" Name="ScoreText" Grid.Row="3" Grid.Column="0" HorizontalAlignment="Left" FontSize="50"></TextBox>
+        <TextBox Foreground="#69d57b" BorderBrush="Transparent" Name="LivesText" Grid.Row="3" Grid.Column="1" HorizontalAlignment="Right" FontSize="50"></TextBox>
         <Viewbox Grid.RowSpan="3" Grid.ColumnSpan="2" Stretch="Uniform">
             <Image Name="Canvas" Stretch="Uniform"/>
         </Viewbox>

@@ -23,15 +23,11 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
     /// </summary>
     public partial class MainWindow : Window
     {
-        /// <summary>
-        /// A brush that can be used to draw things on screen in the specified color
-        /// </summary>
-        private readonly Brush basicColorBrush = new SolidColorBrush(Color.FromRgb(255, 0, 0));
+        private readonly Brush ballColorBrush = new SolidColorBrush(Color.FromArgb(0xff, 0x69, 0xd5, 0x7b));
 
-        /// <summary>
-        /// A pen that can be used to draw things on screen using the specified brush and width
-        /// </summary>        
-        private readonly Pen inferredBonePen = new Pen(Brushes.Red, 1);
+        private readonly Brush paddleColorBrush = new SolidColorBrush(Color.FromArgb(0xff, 0x46, 0x2a, 0x84));
+
+        private readonly Brush blockColorBrush = new SolidColorBrush(Color.FromArgb(0xff, 0x57, 0x34, 0xa5));
 
         /// <summary>
         /// Active Kinect sensor
@@ -47,9 +43,9 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         private const int START_LIVES = 3;
 
         private const int PADDLEHEIGHT = 15;
-        private int PADDLE_START_WIDTH = 600;
+        private const int PADDLE_START_WIDTH = 600;
 
-        private int POINTS_PER_BLOCK = 100;
+        private const int POINTS_PER_BLOCK = 100;
 
         private InteractionStream interactionStream;
 
@@ -344,13 +340,13 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 // Draw empty white canvas to fill screen
                 dc.DrawRectangle(Brushes.Transparent, null, new Rect(0, 0, screenWidth, screenHeight));
                 // Draw ball
-                dc.DrawEllipse(basicColorBrush, inferredBonePen, ball.loc, Ball.BALL_RADIUS, Ball.BALL_RADIUS);
+                dc.DrawEllipse(ballColorBrush, null, ball.loc, Ball.BALL_RADIUS, Ball.BALL_RADIUS);
                 // Draw paddle
-                dc.DrawRectangle(Brushes.Red, null, new Rect(paddle.loc.X - paddle.width / 2, paddle.loc.Y - PADDLEHEIGHT / 2, paddle.width, PADDLEHEIGHT));
+                dc.DrawRectangle(paddleColorBrush, null, new Rect(paddle.loc.X - paddle.width / 2, paddle.loc.Y - PADDLEHEIGHT / 2, paddle.width, PADDLEHEIGHT));
                 // Draw blocks
                 foreach (Block block in blocks)
                 {
-                    dc.DrawRectangle(Brushes.Blue, null, block.getCollisionBox());
+                    dc.DrawRectangle(blockColorBrush, null, block.getCollisionBox());
                 }
             }
 

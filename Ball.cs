@@ -8,7 +8,7 @@ namespace ACMX.Games.Arkinect
 {
     class Ball
     {
-        public const int BALL_RADIUS = 20;
+        public const int BALL_RADIUS = 23;
 
         public Point loc;
         public Point vel;
