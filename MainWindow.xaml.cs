@@ -164,7 +164,8 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
 
         private Block newPaddle(double screenWidth, double screenHeight)
         {
-            return new Block(PADDLE_START_WIDTH, PADDLEHEIGHT, new Point(screenWidth / 2, screenHeight - PADDLEHEIGHT / 2), false);
+            Point loc = (paddle == null || paddle.loc == null ? new Point(screenWidth / 2, screenHeight - PADDLEHEIGHT / 2) : paddle.loc);
+            return new Block(PADDLE_START_WIDTH, PADDLEHEIGHT, loc, false);
         }
 
         /// <summary>
