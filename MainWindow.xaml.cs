@@ -298,7 +298,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         {
             for (double movement = Math.Sqrt(ball.vel.X * ball.vel.X + ball.vel.Y * ball.vel.Y); movement > 0; movement -= PADDLEHEIGHT)
             {
-                ball.limitedMove(Math.Min(movement, PADDLEHEIGHT));
+                ball.limitedMove(PADDLEHEIGHT);
                 if (ball.loc.Y > screenHeight - Ball.BALL_RADIUS)
                 {
                     ball = newBall(screenWidth, screenHeight);
