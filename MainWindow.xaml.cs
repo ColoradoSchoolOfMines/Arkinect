@@ -58,7 +58,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
 
         private GameState gameState;
 
-        private Timer quitTimer = new Timer(5000);
+        private Timer quitTimer = new Timer(20000);
 
         /// <summary>
         /// Drawing group for skeleton rendering output
